@@ -260,7 +260,8 @@ class IPTestCase(TestCase):
                 mock.call([cmd, 'link', 'set', 'em0', 'up'], 'sudo'),
                 mock.call([cmd, 'addr', 'show', 'em0']),
                 mock.call([
-                    'arping', '-A', '-c', '1', '-I', 'em0', '192.168.105.2'
+                    'arping', '-A', '-c', '1', '-vv', '-I', 'em0',
+                    '192.168.105.2'
                 ], 'sudo'),
                 mock.call([
                     cmd, '-6', 'addr', 'add',
@@ -318,7 +319,7 @@ class IPTestCase(TestCase):
                 mock.call(['/sbin/ip', 'link', 'set', 'em0', 'up'], 'sudo'),
                 mock.call(['/sbin/ip', 'addr', 'show', 'em0']),
                 mock.call([
-                    'arping', '-A', '-c', '1', '-I', 'em0', str(a.ip)
+                    'arping', '-A', '-c', '1', '-vv', '-I', 'em0', str(a.ip)
                 ], 'sudo'),
                 mock.call([
                     '/sbin/ip', 'addr', 'del', str(c), 'dev', 'em0'

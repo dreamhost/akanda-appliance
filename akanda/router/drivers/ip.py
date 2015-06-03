@@ -232,7 +232,8 @@ class IPManager(base.Manager):
             ip, prefix = item
             if ip.version == 4:
                 utils.execute([
-                    'arping', '-A', '-c', '1', '-I', real_ifname, str(ip)
+                    'arping', '-A', '-c', '1', '-vv', '-I',
+                    real_ifname, str(ip)
                 ], self.root_helper)
 
         for item in (prev_set - next_set):
