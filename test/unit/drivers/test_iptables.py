@@ -82,9 +82,9 @@ V4_OUTPUT = [
     ':INPUT ACCEPT [0:0]',
     ':OUTPUT ACCEPT [0:0]',
     ':POSTROUTING ACCEPT [0:0]',
-    '-A POSTROUTING -s 192.168.0.2 -j PUBLIC_SNAT',
     '-A PREROUTING -i eth1 -d 172.16.77.50 -j DNAT --to-destination 192.168.0.2',  # noqa
     '-A PREROUTING -i eth2 -d 172.16.77.50 -j DNAT --to-destination 192.168.0.2',  # noqa
+    '-A POSTROUTING -s 192.168.0.0/24 -j PUBLIC_SNAT',
     '-A PREROUTING -i eth2 -d 169.254.169.254 -p tcp -m tcp --dport 80 -j DNAT --to-destination 192.168.0.1:9602',  # noqa
     '-A POSTROUTING -o eth1 -j MASQUERADE',
     'COMMIT',
@@ -181,8 +181,8 @@ class TestIPTablesConfiguration(TestCase):
             'fdca:3ba5:a17a:acda:f816:3eff:fe66:33b6'
         )
         assert map(str, mgr._build_floating_ips(CONFIG)) == [
-            '-A POSTROUTING -s 192.168.0.2 -j PUBLIC_SNAT',
             '-A PREROUTING -i eth1 -d 172.16.77.50 -j DNAT --to-destination 192.168.0.2',  # noqa
-            '-A PREROUTING -i eth2 -d 172.16.77.50 -j DNAT --to-destination 192.168.0.2'  # noqa
+            '-A PREROUTING -i eth2 -d 172.16.77.50 -j DNAT --to-destination 192.168.0.2',  # noqa
+            '-A POSTROUTING -s 192.168.0.0/24 -j PUBLIC_SNAT'
         ]
         assert mgr._build_floating_ips(config) == []

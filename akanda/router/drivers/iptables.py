@@ -106,7 +106,7 @@ class IPTablesManager(base.Manager):
         '''
         Returns the external network
 
-        :rtype: akanda.router.models.Interface
+        :rtype: akanda.router.models.Network
         '''
         return self.networks_by_type(config, Network.TYPE_EXTERNAL)[0]
 
@@ -114,9 +114,17 @@ class IPTablesManager(base.Manager):
         '''
         Returns the management network
 
-        :rtype: akanda.router.models.Interface
+        :rtype: akanda.router.models.Network
         '''
         return self.networks_by_type(config, Network.TYPE_MANAGEMENT)[0]
+
+    def get_internal_networks(self, config):
+        '''
+        Returns the internal networks
+
+        :rtype: [akanda.router.models.Network]
+        '''
+        return self.networks_by_type(config, Network.TYPE_INTERNAL)
 
     def networks_by_type(self, config, type):
         '''
@@ -202,7 +210,7 @@ class IPTablesManager(base.Manager):
         rules = []
         ext_if = self.get_external_network(config).interface
 
-        for network in self.networks_by_type(config, Network.TYPE_INTERNAL):
+        for network in self.get_internal_networks(config):
 
             for version, address, dhcp_port in (
                 (4, network.interface.first_v4, defaults.DHCP),
@@ -260,7 +268,7 @@ class IPTablesManager(base.Manager):
     def _build_v4_nat(self, config):
         rules = []
 
-        for network in self.networks_by_type(config, Network.TYPE_INTERNAL):
+        for network in self.get_internal_networks(config):
             if network.interface.first_v4:
                 # Forward metadata requests on the management interface
                 rules.append(Rule(
@@ -301,11 +309,6 @@ class IPTablesManager(base.Manager):
             # people create these accidentally, just ignore them (because
             # iptables will barf if it encounters them)
             if fip.fixed_ip.version == fip.floating_ip.version:
-                rules.append(
-                    Rule('-A POSTROUTING -s %s -j PUBLIC_SNAT' % (
-                        fip.fixed_ip
-                    ), ip_version=4)
-                )
                 rules.append(Rule(
                     '-A PREROUTING -i %s -d %s -j DNAT --to-destination %s' % (
                         ext_if.ifname,
@@ -313,9 +316,7 @@ class IPTablesManager(base.Manager):
                         fip.fixed_ip
                     ), ip_version=4
                 ))
-                for network in self.networks_by_type(
-                    config, Network.TYPE_INTERNAL
-                ):
+                for network in self.get_internal_networks(config):
                     rules.append(Rule(
                         '-A PREROUTING -i %s -d %s -j DNAT '
                         '--to-destination %s' % (
@@ -324,6 +325,16 @@ class IPTablesManager(base.Manager):
                             fip.fixed_ip
                         ), ip_version=4
                     ))
+
+        if rules:
+            for network in self.get_internal_networks(config):
+                for subnet in network.subnets:
+                    if subnet.cidr.version == 4:
+                        rules.append(
+                            Rule('-A POSTROUTING -s %s -j PUBLIC_SNAT' % (
+                                subnet.cidr
+                            ), ip_version=4)
+                        )
 
         return rules
 
