@@ -146,6 +146,12 @@ net.ipv6.conf.eth2.accept_dad=0
 net.ipv4.conf.all.arp_announce=2
 net.ipv4.conf.default.arp_notify=1
 net.ipv4.conf.all.arp_notify=1
+net.ipv4.neigh.default.gc_thresh1=4096
+net.ipv4.neigh.default.gc_thresh2=8192
+net.ipv4.neigh.default.gc_thresh3=8192
+net.ipv6.neigh.default.gc_thresh1=4096
+net.ipv6.neigh.default.gc_thresh2=8192
+net.ipv6.neigh.default.gc_thresh3=8192
 EOF
 
 echo "[*] Disable fsck on boot"
