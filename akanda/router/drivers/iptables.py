@@ -351,8 +351,10 @@ class IPTablesManager(base.Manager):
             )
         ]
 
+        external_network = self.get_external_network(config)
+
         # NAT floating IP addresses
-        for fip in self.get_external_network(config).floating_ips:
+        for fip in external_network.floating_ips:
 
             if fip.fixed_ip.version == fip.floating_ip.version:
                 rules.append(
@@ -362,10 +364,13 @@ class IPTablesManager(base.Manager):
                     ), ip_version=4)
                 )
 
-        # Add a masquerade catch-all for VMs without floating IPs
+        # Add source NAT for VMs without floating IPs
         mgt_if = self.get_management_network(config).interface
         rules.append(Rule(
-            '-A PUBLIC_SNAT ! -o %s -j MASQUERADE' % mgt_if.ifname,
+            '-A PUBLIC_SNAT ! -o %s -j SNAT --to %s' % (
+                mgt_if.ifname,
+                str(external_network.interface.first_v4)
+            ),
             ip_version=4
         ))
 
